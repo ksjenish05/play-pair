@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Play Pair</title><link rel="stylesheet" href="style.css"/></head>
+<body>
+  <main class="shell">
+    <header><a class="brand" href="/">PLAY<span>PAIR</span></a><p>Two-player games, one shared room.</p></header>
+    <section id="home" class="card home">
+      <div><h1>Challenge a friend.</h1><p>Choose a game, create a private room, and share its code.</p></div>
+      <label>Your name<input id="name" maxlength="18" placeholder="e.g. Sam"/></label>
+      <div class="modes"><button class="mode selected" data-mode="cricket"><b>🏏 Hand Cricket</b><small>Score runs. Match numbers and take a wicket.</small></button><button class="mode" data-mode="bingo"><b>🔢 Bingo</b><small>Call numbers and race to five completed lines.</small></button></div>
+      <button id="create" class="primary">Create game room</button>
+      <div class="join"><span>or join your friend</span><input id="code" maxlength="5" placeholder="ROOM CODE"/><button id="join">Join room</button></div><p id="error" class="error" role="alert"></p>
+    </section>
+    <section id="game" class="hidden">
+      <div class="roombar"><span>ROOM <strong id="roomCode"></strong></span><button id="copy">Copy code</button><span id="status"></span></div>
+      <div id="waiting" class="card hidden"><h2>Waiting for your challenger</h2><p>Share room code <strong id="waitingCode"></strong> with a friend.</p></div>
+      <div id="play" class="hidden"><div class="players"><article id="p0"></article><div class="versus">VS</div><article id="p1"></article></div><section id="board" class="card"></section></div>
+    </section>
+  </main>
+  <script src="/socket.io/socket.io.js"></script><script src="app.js"></script>
+</body></html>
