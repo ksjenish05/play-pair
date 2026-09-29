@@ -47,7 +47,7 @@ function emitRoom(room) {
 }
 function resetGame(room) {
   room.status = "playing";
-  if (room.mode === "cricket") room.cricket = { innings: 0, batting: 0, balls: 0, scores: [0, 0], choices: [null, null], message: `${room.players[0].name} is batting` };
+  if (room.mode === "cricket") room.cricket = { innings: 0, batting: 0, balls: 0, scores: [0, 0], choices: [null, null], winner: null, message: `${room.players[0].name} is batting` };
   if (room.mode === "bingo") room.bingo = { turn: 0, cards: [newCard(), newCard()], marked: [[], []], called: [], lines: [0, 0], winner: null };
 }
 function finishCricketInnings(room) {
@@ -58,7 +58,8 @@ function finishCricketInnings(room) {
   } else {
     room.status = "finished";
     const [a, b] = c.scores;
-    c.message = a === b ? "It is a tie!" : `${room.players[a > b ? 0 : 1].name} wins!`;
+    c.winner = a === b ? null : a > b ? 0 : 1;
+    c.message = c.winner === null ? "It is a tie!" : `${room.players[c.winner].name} wins!`;
   }
 }
 function bingoLines(card, marked) {
@@ -100,7 +101,7 @@ io.on("connection", socket => {
       const [first, second] = c.choices; const batterChoice = c.choices[c.batting];
       c.choices = [null, null]; c.balls += 1;
       if (first === second) { c.message = `OUT! Both chose ${first}.`; finishCricketInnings(room); }
-      else { c.scores[c.batting] += batterChoice; c.message = `${room.players[c.batting].name} scores ${batterChoice}.`; if (c.innings === 1 && c.scores[1] > c.scores[0]) { room.status = "finished"; c.message = `${room.players[1].name} wins!`; } else if (c.balls >= MAX_CRICKET_BALLS) finishCricketInnings(room); }
+      else { c.scores[c.batting] += batterChoice; c.message = `${room.players[c.batting].name} scores ${batterChoice}.`; if (c.innings === 1 && c.scores[1] > c.scores[0]) { room.status = "finished"; c.winner = 1; c.message = `${room.players[1].name} wins!`; } else if (c.balls >= MAX_CRICKET_BALLS) finishCricketInnings(room); }
     }
     emitRoom(room);
   });
@@ -115,6 +116,13 @@ io.on("connection", socket => {
     emitRoom(room);
   });
   socket.on("game:rematch", () => { const room = roomFor(socket); if (room && room.players.length === 2) { resetGame(room); emitRoom(room); } });
+  socket.on("room:leave", () => {
+    const room = roomFor(socket); if (!room) return;
+    room.players = room.players.filter(p => p.id !== socket.id);
+    socket.leave(room.code); socket.data.roomCode = undefined;
+    if (room.players.length === 0) rooms.delete(room.code);
+    else { room.status = "lobby"; delete room.cricket; delete room.bingo; emitRoom(room); }
+  });
   socket.on("disconnect", () => {
     const room = roomFor(socket); if (!room) return;
     const player = room.players.find(p => p.id === socket.id); if (player) player.connected = false;
