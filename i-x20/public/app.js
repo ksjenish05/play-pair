@@ -9,6 +9,7 @@ $("#code").oninput = e => e.target.value = e.target.value.toUpperCase();
 socket.on("app:error", message => $("#error").textContent = message);
 socket.on("room:joined", ({ code }) => { $("#home").classList.add("hidden"); $("#game").classList.remove("hidden"); $("#roomCode").textContent = code; $("#waitingCode").textContent = code; });
 $("#copy").onclick = async () => { await navigator.clipboard.writeText($("#roomCode").textContent); $("#copy").textContent = "Copied!"; setTimeout(() => $("#copy").textContent = "Copy code", 1200); };
+$("#homeButton").onclick = () => backToMenu();
 socket.on("room:update", state => { room = state; render(); });
 function render() {
   const ready = room.players.length === 2;
